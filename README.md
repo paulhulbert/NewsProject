@@ -1,2 +1,2 @@
 # NewsProject
-SWEN-344 News Feed Project1
+SWEN-344 News Feed Project
