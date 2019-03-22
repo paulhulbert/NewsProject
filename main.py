@@ -1,11 +1,49 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request, session, redirect
 import requests
 from lxml import objectify
 from datetime import datetime
 from operator import itemgetter
+import json
 
 
 app = Flask(__name__)
+app.secret_key = b'PaulIsAwesome'
+
+data = dict()
+
+
+def load_data():
+    fil = open('data.json', 'r')
+    global data
+    data = json.loads(fil.read())
+    fil.close()
+
+
+def save_data():
+    fil = open('data.json', 'w')
+    data_string = json.dumps(data)
+    fil.write(data_string)
+    fil.close()
+
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if 'username' in session and session['username'] in data['users']:
+        return redirect('/')
+
+    if request.method == 'POST':
+        if request.form['username'] in data['users'] and request.form['password'] == data['users'][request.form['username']]['password']:
+            session['username'] = request.form['username']
+            return redirect('/')
+        else:
+            return render_template('login.html', error="Incorrect username or password")
+    return render_template('login.html')
+
+
+@app.route('/logout', methods=['GET'])
+def logout():
+    session.clear()
+    return redirect('/login')
 
 
 @app.route('/')
@@ -14,7 +52,7 @@ def index():
     return render_template('index.html', items=items)
 
 
-@app.route('/<sport>')
+@app.route('/feed/<sport>')
 def specific_page(sport):
     items = get_items_from_rss(get_espn_feed(sport))
     return render_template('index.html', items=items)
@@ -68,4 +106,5 @@ def get_espn_feed(sport):
 
 
 if __name__ == '__main__':
+    load_data()
     app.run('0.0.0.0')
