@@ -26,6 +26,25 @@ def save_data():
     fil.close()
 
 
+@app.route('/createaccount', methods=['GET', 'POST'])
+def create_account():
+    if 'username' in session and session['username'] in data['users']:
+        return redirect('/')
+
+    if request.method == 'POST':
+        if request.form['username'] in data['users']:
+            return render_template('create_account.html', error="Username already in use")
+        elif request.form['password'] != request.form['password2']:
+            return render_template('create_account.html', error="Passwords do not match")
+        else:
+            new_user = {'password': request.form['password'], 'last_login': datetime.now().ctime(), 'current_login': datetime.now().ctime()}
+            data['users'][request.form['username']] = new_user
+            save_data()
+            session['username'] = request.form['username']
+            return redirect('/')
+    return render_template('create_account.html')
+
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if 'username' in session and session['username'] in data['users']:
@@ -34,6 +53,8 @@ def login():
     if request.method == 'POST':
         if request.form['username'] in data['users'] and request.form['password'] == data['users'][request.form['username']]['password']:
             session['username'] = request.form['username']
+            data['users'][session['username']]['last_login'] = data['users'][session['username']]['current_login']
+            data['users'][session['username']]['current_login'] = datetime.now().ctime()
             return redirect('/')
         else:
             return render_template('login.html', error="Incorrect username or password")
@@ -49,13 +70,13 @@ def logout():
 @app.route('/')
 def index():
     items = merge_feeds([get_items_from_rss(get_espn_feed("NHL")), get_items_from_rss(get_espn_feed("NFL")), get_items_from_rss(get_espn_feed("NBA"))])
-    return render_template('index.html', items=items)
+    return render_template('index.html', items=items, last_login=data['users'][session['username']]['last_login'])
 
 
 @app.route('/feed/<sport>')
 def specific_page(sport):
     items = get_items_from_rss(get_espn_feed(sport))
-    return render_template('index.html', items=items)
+    return render_template('index.html', items=items, last_login=data['users'][session['username']]['last_login'])
 
 
 def merge_feeds(feeds):
@@ -82,7 +103,6 @@ def pop_earliest_item(feeds):
     if not min_feed:
         return None
     return min_feed.pop(0)
-
 
 
 def get_items_from_rss(rss_dump):

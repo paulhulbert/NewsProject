@@ -1,10 +1,1 @@
-{
-  "users": {
-    "Paul": {
-      "password": "1"
-    },
-    "David": {
-      "password": "2"
-    }
-  }
-}
+{"users": {"Paul": {"password": "1", "last_login": "Sat Mar 23 00:55:38 2019", "current_login": "Sat Mar 23 00:55:38 2019"}}}
