@@ -55,6 +55,7 @@ def login():
             session['username'] = request.form['username']
             data['users'][session['username']]['last_login'] = data['users'][session['username']]['current_login']
             data['users'][session['username']]['current_login'] = datetime.now().ctime()
+            save_data()
             return redirect('/')
         else:
             return render_template('login.html', error="Incorrect username or password")
