@@ -5,7 +5,6 @@ from datetime import datetime
 from operator import itemgetter
 import json
 
-
 app = Flask(__name__)
 app.secret_key = b'PaulIsAwesome'
 
@@ -37,7 +36,8 @@ def create_account():
         elif request.form['password'] != request.form['password2']:
             return render_template('create_account.html', error="Passwords do not match")
         else:
-            new_user = {'password': request.form['password'], 'last_login': datetime.now().ctime(), 'current_login': datetime.now().ctime()}
+            new_user = {'password': request.form['password'], 'last_login': datetime.now().ctime(),
+                        'current_login': datetime.now().ctime(), 'favorites': []}
             data['users'][request.form['username']] = new_user
             save_data()
             session['username'] = request.form['username']
@@ -51,7 +51,8 @@ def login():
         return redirect('/')
 
     if request.method == 'POST':
-        if request.form['username'] in data['users'] and request.form['password'] == data['users'][request.form['username']]['password']:
+        if request.form['username'] in data['users'] and request.form['password'] == \
+                data['users'][request.form['username']]['password']:
             session['username'] = request.form['username']
             data['users'][session['username']]['last_login'] = data['users'][session['username']]['current_login']
             data['users'][session['username']]['current_login'] = datetime.now().ctime()
@@ -68,16 +69,55 @@ def logout():
     return redirect('/login')
 
 
-@app.route('/')
+@app.route('/', methods=['GET', 'POST'])
 def index():
-    items = merge_feeds([get_items_from_rss(get_espn_feed("NHL")), get_items_from_rss(get_espn_feed("NFL")), get_items_from_rss(get_espn_feed("NBA"))])
-    return render_template('index.html', items=items, last_login=data['users'][session['username']]['last_login'])
+    if 'username' not in session or session['username'] not in data['users']:
+        return redirect('/login')
+    if request.method == 'POST':
+        toggle_favorite(request.form['guid'])
+    items = merge_feeds([get_items_from_rss(get_espn_feed("NHL")), get_items_from_rss(get_espn_feed("NFL")),
+                         get_items_from_rss(get_espn_feed("NBA"))])
+    return render_template('index.html', items=items, last_login=data['users'][session['username']]['last_login'],
+                           title='Home')
 
 
-@app.route('/feed/<sport>')
+@app.route('/feed/<sport>', methods=['GET', 'POST'])
 def specific_page(sport):
-    items = get_items_from_rss(get_espn_feed(sport))
-    return render_template('index.html', items=items, last_login=data['users'][session['username']]['last_login'])
+    if 'username' not in session or session['username'] not in data['users']:
+        return redirect('/login')
+    if request.method == 'POST':
+        toggle_favorite(request.form['guid'])
+
+    if sport != 'favorites':
+        items = get_items_from_rss(get_espn_feed(sport))
+    else:
+        all_items = merge_feeds([get_items_from_rss(get_espn_feed("NHL")), get_items_from_rss(get_espn_feed("NFL")),
+                                 get_items_from_rss(get_espn_feed("NBA"))])
+        items = []
+        for item in all_items:
+            if item['favorite']:
+                items.append(item)
+
+    return render_template('index.html', items=items, last_login=data['users'][session['username']]['last_login'],
+                           title=sport)
+
+
+def toggle_favorite(guid):
+    if guid in data['users'][session['username']]['favorites']:
+        remove_favorite(guid)
+    else:
+        add_favorite(guid)
+    save_data()
+
+
+def add_favorite(guid):
+    if guid not in data['users'][session['username']]['favorites']:
+        data['users'][session['username']]['favorites'].append(guid)
+
+
+def remove_favorite(guid):
+    if guid in data['users'][session['username']]['favorites']:
+        data['users'][session['username']]['favorites'].remove(guid)
 
 
 def merge_feeds(feeds):
@@ -117,6 +157,7 @@ def get_items_from_rss(rss_dump):
         item_dict['pubDate'] = item.pubDate.text
         item_dict['guid'] = item.guid.text
         item_dict['dt'] = datetime.strptime(item.pubDate.text, '%a, %d %b %Y %H:%M:%S EST')
+        item_dict['favorite'] = item.guid.text in data['users'][session['username']]['favorites']
         items.append(item_dict)
     items.sort(key=itemgetter('dt'), reverse=True)
     return items

@@ -7,65 +7,78 @@
 
 </head>
 <body>
-    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
 
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-      <a class="navbar-brand" href="/">Home</a>
-      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <a class="navbar-brand" href="/">Home</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
-      </button>
+    </button>
 
-      <div class="collapse navbar-collapse" id="navbarSupportedContent">
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
         <ul class="navbar-nav mr-auto">
-          <li class="nav-item">
-            <a class="nav-link" href="/feed/NHL">NHL</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="/feed/NFL">NFL</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="/feed/NBA">NBA</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="/logout">Log Out</a>
-          </li>
-          <li class="navbar-text">
-            <p>Last login was at: {{ last_login }}</p>
-          </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/feed/NHL">NHL</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/feed/NFL">NFL</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/feed/NBA">NBA</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/feed/favorites">Favorites</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/logout">Log Out</a>
+            </li>
+            <li class="navbar-text">
+                <p>Last login was at: {{ last_login }}</p>
+            </li>
         </ul>
-      </div>
-    </nav>
+    </div>
+</nav>
 
 
 
 
 
 
-    <div>
-        {% for item in items %}
-            <div class="row justify-content-center">
-                <div class="col-md-5">
-                  <div class="card border-dark mb-5">
-                      <img class="card-image-top" src="{{ item.image }}">
-                      <div class="card-body">
-                          <div class="card-title">
-                              <h2>
-                                  <a href="{{ item.link }}">{{ item.title }}</a>
-                              </h2>
-                          </div>
-                          <div class="card-text">
-                              <p>{{ item.description }}</p>
-                          </div>
-                          <div class="card-footer">
-                              <p>{{ item.pubDate }}</p>
-                          </div>
-                      </div>
-                  </div>
+<div>
+    {% for item in items %}
+        <div class="row justify-content-center">
+            <div class="col-md-10 col-lg-5">
+                <div class="card border-dark mb-5">
+                    <img class="card-image-top" src="{{ item.image }}">
+                    <div class="card-body">
+                        <div class="card-title">
+                            <h2>
+                                <a href="{{ item.link }}">{{ item.title }}</a>
+                            </h2>
+                        </div>
+                        <div>
+                            <form action="" id="favoriteForm" method="post">
+                                <input type="hidden" id="guid" name="guid" value="{{ item.guid }}">
+                                {% if item.favorite %}
+                                    <input type="submit" value="Unfavorite" class="btn btn-def btn-block"/>
+                                {% else %}
+                                    <input type="submit" value="Favorite" class="btn btn-def btn-block"/>
+                                {% endif %}
+                            </form>
+                        </div>
+                        <div class="card-text">
+                            <p>{{ item.description }}</p>
+                        </div>
+                        <div class="card-footer">
+                            <p>{{ item.pubDate }}</p>
+                        </div>
+                    </div>
                 </div>
             </div>
-        {% endfor %}
-    </div>
+        </div>
+    {% endfor %}
+</div>
 </body>
 </html>
