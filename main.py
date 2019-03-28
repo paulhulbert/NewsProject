@@ -169,4 +169,4 @@ def get_espn_feed(sport):
 
 if __name__ == '__main__':
     load_data()
-    app.run('0.0.0.0')
+    app.run('0.0.0.0', port=31042)
